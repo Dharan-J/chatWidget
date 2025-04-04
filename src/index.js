@@ -1,18 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import ChatWidget from '../src/chatWidget/ChatWidget';
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.Fragment>
-    {/* <App /> */}
-    <ChatWidget />
-  </React.Fragment>
-);
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import ChatWidget from "../src/chatWidget/ChatWidget";
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+window.ChatWidget = {
+  init: () => {
+    // Create a new div for mounting the widget
+    const chatDiv = document.createElement("div");
+    chatDiv.id = "chat-widget-container";
+    document.body.appendChild(chatDiv);
+
+    // Render ChatWidget inside the new div
+    const root = ReactDOM.createRoot(chatDiv);
+    root.render(<ChatWidget />);
+  },
+};
