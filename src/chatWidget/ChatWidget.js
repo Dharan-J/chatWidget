@@ -13,7 +13,16 @@ const ChatWidget = ({
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const botId = queryParams.get('botId');
+    const organizationId = queryParams.get('organizationId');
+    const jwtToken = queryParams.get('jwtToken');
   
+    console.log('botId:', botId);
+    console.log('organizationId:', organizationId);
+    console.log('jwtToken:', jwtToken);
+  }, []);
   // Connect to chat server when widget opens
   useEffect(() => {
     if (isOpen && connectionStatus === 'disconnected') {
