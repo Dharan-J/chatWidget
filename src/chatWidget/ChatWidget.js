@@ -132,8 +132,8 @@ const ChatWidget = ({
       type: 'CHAT_WIDGET_STATE',
       isOpen: isOpen,
       // You can also send recommended dimensions
-      suggestedHeight: isOpen ? '550px' : '80px',
-      suggestedWidth: isOpen ? '400px' : '80px'
+      suggestedHeight: isOpen ? '550px' : '85px',
+      suggestedWidth: isOpen ? '400px' : '85px'
     }, '*');
   };
   return (
