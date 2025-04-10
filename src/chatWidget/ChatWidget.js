@@ -14,6 +14,21 @@ const ChatWidget = ({
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const widgetRef = useRef(null);
+  const socket = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && widgetRef.current && !widgetRef.current.contains(event.target)) {
+        setIsOpen(false);
+        notifyParentOfState(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+  
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const botId = queryParams.get('botId');
@@ -61,7 +76,6 @@ const ChatWidget = ({
     addMessage('user', message);
     sendMessageToBot(message);
   };
-  const socket = useRef(null);
 
   const sendMessageToBot = async (msg) => {
     try {
@@ -139,6 +153,7 @@ const ChatWidget = ({
   return (
     <div 
       className="chat-widget-container" 
+      ref={widgetRef}
       style={{ 
         '--primary-color': primaryColor,
         [position]: '20px'
