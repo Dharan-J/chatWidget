@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './ChatWidget.css';
 import ChatButton from './ChatButton';
 import ChatPanel from './ChatPanel';
+import { io } from 'socket.io-client';
 
 const ChatWidget = ({ 
   widgetId = 'default_widget', 
@@ -58,35 +59,83 @@ const ChatWidget = ({
   const sendMessage = (message) => {
     // Add user message to chat
     addMessage('user', message);
-    
-    // Simulate server response
-    setTimeout(() => {
-      let response = "Thanks for your message! Our team will get back to you shortly.";
-      
-      // Simple bot responses
-      if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
-        response = "Hello there! How can I assist you today?";
-      } else if (message.toLowerCase().includes('help')) {
-        response = "I'd be happy to help. Could you please provide more details about your issue?";
-      } else if (message.toLowerCase().includes('bye')) {
-        response = "Thank you for chatting with us. Have a great day!";
-      }
-      
-      addMessage('agent', response);
-    }, 1500);
+    sendMessageToBot(message);
   };
+  const socket = useRef(null);
 
-  // Expose methods to parent window when used as embedded widget
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.CustomChatWidget = {
-        open: () => setIsOpen(true),
-        close: () => setIsOpen(false),
-        addSystemMessage: (message) => addMessage('system', message)
-      };
+  const sendMessageToBot = async (msg) => {
+    try {
+      const response = await fetch("http://192.168.0.106:8082/send-message", {
+        method: "POST",
+        headers: {
+          "Accept": "*/*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          botId: 49,
+          message: msg,
+          organizationId: 26,
+          userId: "guest_user_1",
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response?.json(); // Adjust if the API returns text
+      console.log("Response from server:", data);
+      return data;
+    } catch (error) {
+      console.error("Error sending message:", error);
+      return null;
     }
-  }, []);
+  };
+  
+  useEffect(() => {
+    try {
+      socket.current = io('https://chat-bot.odioiq.com/chatBotV2'); // server URL
+    } catch (err) {
+      console.log('socketError: ', err);
+    }
 
+    try {
+      socket.current.on('connect', () => {
+        socket.current.emit('userDetails');
+        console.log('Connected Successfully');
+      });
+    } catch (err) {
+      console.log('ConnectionError: ', err);
+    }
+
+    socket.current.on('chatBotReply/guest_user_1', (message) => {
+      console.log('message_CHATJS==>: ', message);
+      addMessage('agent', message);
+    });
+
+    socket.current.on('output', (message) => {
+      console.log('output_message: ', message);
+    });
+
+    return () => {
+      try {
+        socket.current.disconnect(() => {});
+        console.log('Disconnected Successfully');
+      } catch (err) {
+        console.log('DisconnectedError : ', err);
+      }
+    };
+  }, []);
+  const notifyParentOfState = (isOpen) => {
+    // Send message to parent with current state
+    window.parent.postMessage({
+      type: 'CHAT_WIDGET_STATE',
+      isOpen: isOpen,
+      // You can also send recommended dimensions
+      suggestedHeight: isOpen ? '500px' : '120px',
+      suggestedWidth: isOpen ? '350px' : '120px'
+    }, '*');
+  };
   return (
     <div 
       className="chat-widget-container" 
@@ -99,11 +148,11 @@ const ChatWidget = ({
         <ChatPanel 
           title={title}
           messages={messages} 
-          onClose={() => setIsOpen(false)}
+          onClose={() => {setIsOpen(false);notifyParentOfState(false)}}
           onSendMessage={sendMessage}
         />
       ) : (
-        <ChatButton onClick={() => setIsOpen(true)} />
+        <ChatButton onClick={() => {setIsOpen(true);notifyParentOfState(true)}} />
       )}
     </div>
   );

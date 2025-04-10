@@ -36,7 +36,7 @@ const ChatPanel = ({ title, messages, onClose, onSendMessage }) => {
         <div className="chat-close" onClick={onClose}>×</div>
       </div>
       
-      <MessageList messages={messages} />
+      <MessageList messages={messages} onSendMessage={onSendMessage} />
       <div ref={messagesEndRef} />
       
       <div className="chat-input-area">

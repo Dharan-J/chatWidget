@@ -14,9 +14,7 @@ window.ChatWidget = {
     // Mount ChatWidget
     const root = ReactDOM.createRoot(chatDiv);
     root.render(
-      <React.StrictMode>
         <ChatWidget />
-      </React.StrictMode>
     );
   },
 };
