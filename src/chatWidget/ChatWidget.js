@@ -116,7 +116,7 @@ const ChatWidget = ({
     socket.current.on('output', (message) => {
       console.log('output_message: ', message);
     });
-
+    notifyParentOfState(false);
     return () => {
       try {
         socket.current.disconnect(() => {});
@@ -132,8 +132,8 @@ const ChatWidget = ({
       type: 'CHAT_WIDGET_STATE',
       isOpen: isOpen,
       // You can also send recommended dimensions
-      suggestedHeight: isOpen ? '500px' : '120px',
-      suggestedWidth: isOpen ? '350px' : '120px'
+      suggestedHeight: isOpen ? '550px' : '80px',
+      suggestedWidth: isOpen ? '400px' : '80px'
     }, '*');
   };
   return (
