@@ -1,4 +1,3 @@
-// ChatWidget.jsx - Main component
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatWidget.css';
 import ChatButton from './ChatButton';
@@ -14,32 +13,10 @@ const ChatWidget = ({
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const widgetRef = useRef(null);
-  const socket = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isOpen && widgetRef.current && !widgetRef.current.contains(event.target)) {
-        setIsOpen(false);
-        notifyParentOfState(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-  
-  useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const botId = queryParams.get('botId');
-    const organizationId = queryParams.get('organizationId');
-    const jwtToken = queryParams.get('jwtToken');
-  
-    console.log('botId:', botId);
-    console.log('organizationId:', organizationId);
-    console.log('jwtToken:', jwtToken);
-  }, []);
-  // Connect to chat server when widget opens
+    const organizationId = queryParams.get('organizationId'); 
+    const userId = queryParams.get('userId');
   useEffect(() => {
     if (isOpen && connectionStatus === 'disconnected') {
       connectToServer(widgetId);
@@ -70,26 +47,27 @@ const ChatWidget = ({
     setMessages(prevMessages => [...prevMessages, newMessage]);
   };
 
-  // Send message to server
   const sendMessage = (message) => {
     // Add user message to chat
     addMessage('user', message);
     sendMessageToBot(message);
   };
+  const socket = useRef(null);
 
   const sendMessageToBot = async (msg) => {
     try {
-      const response = await fetch("http://192.168.0.106:8082/send-message", {
+      const response = await fetch("https://workflow-bot.odioiq.com/api/v1/chatbot/send-message", {
         method: "POST",
         headers: {
           "Accept": "*/*",
           "Content-Type": "application/json",
+          "access-key": "CHAT-BOT-ACCESS-2024-TRUST-X9Y2"
         },
         body: JSON.stringify({
-          botId: 49,
+          botId: botId,
           message: msg,
-          organizationId: 26,
-          userId: "guest_user_1",
+          organizationId: organizationId,
+          userId: userId,
         }),
       });
   
@@ -97,7 +75,7 @@ const ChatWidget = ({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
   
-      const data = await response?.json(); // Adjust if the API returns text
+      const data = await response?.json();
       console.log("Response from server:", data);
       return data;
     } catch (error) {
@@ -108,7 +86,7 @@ const ChatWidget = ({
   
   useEffect(() => {
     try {
-      socket.current = io('https://chat-bot.odioiq.com/chatBotV2'); // server URL
+      socket.current = io('https://chat-bot.odioiq.com/chatBotV2');
     } catch (err) {
       console.log('socketError: ', err);
     }
@@ -145,7 +123,6 @@ const ChatWidget = ({
     window.parent.postMessage({
       type: 'CHAT_WIDGET_STATE',
       isOpen: isOpen,
-      // You can also send recommended dimensions
       suggestedHeight: isOpen ? '550px' : '85px',
       suggestedWidth: isOpen ? '400px' : '85px'
     }, '*');
@@ -153,7 +130,6 @@ const ChatWidget = ({
   return (
     <div 
       className="chat-widget-container" 
-      ref={widgetRef}
       style={{ 
         '--primary-color': primaryColor,
         [position]: '20px'
