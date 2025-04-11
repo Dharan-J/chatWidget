@@ -100,7 +100,7 @@ const ChatWidget = ({
       console.log('ConnectionError: ', err);
     }
 
-    socket.current.on('chatBotReply/guest_user_1', (message) => {
+    socket.current.on(`chatBotReply/${userId}`, (message) => {
       console.log('message_CHATJS==>: ', message);
       addMessage('agent', message);
     });
